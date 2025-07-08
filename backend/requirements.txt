@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-dotenv
+httpx
+pydantic
+sarvamai
+google-generativeai
+langdetect
+aiofiles
