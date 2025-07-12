@@ -13,4 +13,7 @@ def get_default_speaker(language_code: str) -> str:
         "od-IN": "vidya"
     }
 
-    return speaker_map.get(language_code, "anushka")  # Default fallback
+    selected = speaker_map.get(language_code, "anushka")
+    print(f"🔍 [DEBUG] Speaker for '{language_code}' → '{selected}'")
+    return selected
+
