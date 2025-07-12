@@ -5,12 +5,15 @@ import { UseCaseDemo } from "@/components/use-case-demo"
 import { TechStack } from "@/components/tech-stack"
 import { AboutContact } from "@/components/about-contact"
 import { Navbar } from "@/components/navbar"
+import VoiceGenie from '@/components/VoiceGenie';
+
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
       <Navbar />
       <HeroSection />
+      <VoiceGenie />
       <HowItWorks />
       <Features />
       <UseCaseDemo />
