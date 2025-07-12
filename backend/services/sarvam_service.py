@@ -1,6 +1,6 @@
 from sarvamai import SarvamAI
 from sarvamai.play import save
-import os, logging, uuid
+import os, logging, uuid, asyncio
 from typing import Optional, Tuple
 
 # Logger setup
@@ -39,15 +39,25 @@ class SarvamService:
         Returns: File path of saved audio.
         """
         try:
-            audio = self.client.text_to_speech.convert(
-                target_language_code=language_code,
-                text=text,
-                model="bulbul:v2",
-                speaker=speaker,
-            )
             file_path = f"static/audio/response_{uuid.uuid4().hex[:8]}.wav"
-            save(audio, file_path)
+
+            def sync_tts():
+                audio = self.client.text_to_speech.convert(
+                    target_language_code=language_code,
+                    text=text,
+                    model="bulbul:v2",
+                    speaker=speaker,
+                )
+                save(audio, file_path)
+
+            # Run sync TTS in thread-safe async
+            await asyncio.get_event_loop().run_in_executor(None, sync_tts)
+
+            if not os.path.exists(file_path):
+                raise Exception("Audio file was not created.")
+
             return file_path
+
         except Exception as e:
             logger.error(f"Error in text_to_speech: {str(e)}")
             raise Exception("TTS conversion failed.")
