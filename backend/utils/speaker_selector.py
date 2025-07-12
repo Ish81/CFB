@@ -1,11 +1,11 @@
 def get_default_speaker(language_code: str) -> str:
     speaker_map = {
         "en-IN": "anushka",
-        "hi-IN": "amol",
+        "hi-IN": "anushka",
         "mr-IN": "manisha",
         "ta-IN": "maya",
         "bn-IN": "abhilash",
-        "te-IN": "vian",
+        "te-IN": "karun",
         "gu-IN": "karun",
         "ml-IN": "maitreyi",
         "kn-IN": "arvind",
