@@ -1,10 +1,10 @@
-from fastapi import FastAPI, UploadFile, Form
+from fastapi import FastAPI, UploadFile
 from services.gemini_service import GeminiService
 from services.sarvam_service import SarvamService
 from services.audio_service import save_audio
 from models.responses import SpeakResponse
-from utils.language_detector import detect_dominant_language
-from utils.speaker_selector import get_default_speaker  # ✅ Import this
+from utils.language_detector import fallback_language_detection
+from utils.speaker_selector import get_default_speaker
 import uuid, os
 import dotenv
 
@@ -18,29 +18,38 @@ sarvam = SarvamService()
 async def voice_query(file: UploadFile):
     temp_file = await save_audio(file)
 
-    transcribed = await sarvam.transcribe_audio(temp_file, language_code="en-IN")  # Initial decode only
-
-    if not transcribed:
+    try:
+        # Transcribe and get detected language from Sarvam
+        transcribed, sarvam_detected_lang = await sarvam.transcribe_audio(temp_file)
+    except Exception as e:
         return SpeakResponse(
             success=False,
-            error="Transcription failed",
+            error=f"Transcription failed: {str(e)}",
             text=None,
             audio_url=None
         )
 
-    # Detect language from transcribed text
-    detected_lang_code = detect_dominant_language(transcribed)
-    selected_speaker = get_default_speaker(detected_lang_code)
+    if not transcribed:
+        return SpeakResponse(
+            success=False,
+            error="No transcription result.",
+            text=None,
+            audio_url=None
+        )
+
+    # Use langdetect fallback if Sarvam gives 'en-IN' for regional language
+    final_language_code = fallback_language_detection(transcribed, sarvam_detected_lang)
+    selected_speaker = get_default_speaker(final_language_code)
 
     # Generate AI response
     ai_reply = gemini.get_answer(transcribed)
 
     try:
-        tts_path = await sarvam.text_to_speech(ai_reply, detected_lang_code, selected_speaker)
+        tts_path = await sarvam.text_to_speech(ai_reply, final_language_code, selected_speaker)
     except Exception as e:
         return SpeakResponse(
             success=False,
-            error=str(e),
+            error=f"TTS failed: {str(e)}",
             text=ai_reply,
             audio_url=None
         )
